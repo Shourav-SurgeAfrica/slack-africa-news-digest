@@ -95,19 +95,36 @@ def summarize_articles(articles):
     summaries = []
     for article in articles: 
         prompt = f"Summarize the following article in 2 bullet points:\n\nTitle: {article['title']}\n\nSummary: {article['summary']}"
+
+        # First try with GPT-4
         try:
             response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You're a summarizer for African fintech news."},
                     {"role": "user", "content": prompt}
                 ]
             )
             summary = response.choices[0].message.content.strip()
+
+        # If GPT-4 fails (e.g., model not available), fallback to GPT-3.5
         except Exception as e:
-            summary = f"❌ Failed to summarize:\n{e}"
+            try:
+                print(f"GPT-4 failed: {e}, falling back to GPT-3.5...")
+                response = client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": "You're a summarizer for African fintech news."},
+                        {"role": "user", "content": prompt}
+                    ]
+                )
+                summary = response.choices[0].message.content.strip()
+            except Exception as fallback_error:
+                summary = f"❌ Failed to summarize with both models:\n{fallback_error}"
+
         summaries.append(f"*{article['title']}*\n{summary}\n🔗 {article['link']}\n")
     return summaries
+
 
 def post_to_slack(digest):
     client = WebClient(token=slack_token)
