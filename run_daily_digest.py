@@ -56,11 +56,17 @@ def post_to_slack(digest):
     client = WebClient(token=slack_token)
     date = datetime.utcnow().strftime('%A, %d %B %Y')
     header = f"*📰 Your Africa Fintech Digest – {date}*\n\n"
-    message = header + "\n\n".join
-    def main():
+    message = header + "\n\n".join(digest)
+
+    try:
+        client.chat_postMessage(channel=channel, text=message)
+    except Exception as e:
+        print(f"Failed to post to Slack: {e}")
+
+def main():
     articles = fetch_articles()
     summaries = summarize_articles(articles)
-    send_to_slack(summaries)
+    post_to_slack(summaries)
 
 if __name__ == "__main__":
     main()
