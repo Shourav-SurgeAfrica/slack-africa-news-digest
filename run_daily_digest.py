@@ -14,11 +14,34 @@ client = openai.OpenAI(api_key=openai_api_key)
 
 # RSS feeds to monitor
 RSS_FEEDS = [
-    "https://techcabal.com/feed/",
-    "https://qz.com/africa/feed",
-    "https://disrupt-africa.com/feed/",
-    "https://weetracker.com/feed/",
-    "https://www.theafricareport.com/feed/"
+    # 🌍 Pan-African & Regional Tech/Fintech News
+    "https://techcabal.com/feed/",                          # ✔ TechCabal
+    "https://disrupt-africa.com/feed/",                     # Disrupt Africa
+    "https://weetracker.com/feed/",                         # WeeTracker
+    "https://www.technext.ng/feed/",                        # TechNext Nigeria
+    "https://www.benjamindada.com/rss/",                    # Benjamin Dada (converted via Kill the Newsletter)
+    "https://techmoran.com/feed/",                          # Tech Moran (Kenya)
+    "https://techpoint.africa/feed/",                       # TechPoint Africa
+
+    # 💸 Finance, VC & Remittance-Focused
+    "https://www.theafricareport.com/feed/",                # The Africa Report
+    "https://africa.businessinsider.com/rss",               # Business Insider Africa
+    "https://www.pymnts.com/feed/",                         # PYMNTS (Global, use filters)
+    "https://www.finextra.com/rss/news.aspx",              # Finextra
+    "https://techinafrica.com/feed/",                       # Tech in Africa
+    "https://qz.com/africa/feed",                           # Quartz Africa
+
+    # 🧠 Analytical / Long-form / Reports
+    "https://fincra.com/blog/feed/",                        # Fincra Blog
+    "https://mfsafrica.com/blog/rss.xml",                  # MFS Africa Blog
+    "https://blog.chipper.cash/feed/",                      # Chipper Cash Blog
+
+    # 📣 Global Media (use with filters in code)
+    "https://techcrunch.com/feed/",                         # TechCrunch (Filter for Africa)
+    "https://www.theverge.com/rss/index.xml",              # The Verge (Use only when mapping trends)
+    "https://www.wired.com/feed/rss",                       # Wired (Use with caution)
+    "https://finance.yahoo.com/news/rssindex",             # Yahoo Finance
+    "https://www.coindesk.com/arc/outboundfeeds/rss/",     # CoinDesk (filter for African crypto)
 ]
 
 # Keywords to filter relevant stories
