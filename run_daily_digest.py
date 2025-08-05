@@ -135,17 +135,17 @@ def post_to_slack(digest):
 
 def main():
     articles = fetch_articles()
-    
-    if not summaries:
-    no_content_msg = ":newspaper: *Your Africa Fintech Digest – {}*\n\n_No relevant articles found in the past 5 days._".format(
-        datetime.utcnow().strftime('%A, %d %B %Y')
-    )
-    post_to_slack([no_content_msg])
-    return
 
-    
+    if not articles:
+        no_content_msg = ":newspaper: *Your Africa Fintech Digest – {}*\n\n_No relevant articles found in the past 5 days._".format(
+            datetime.utcnow().strftime('%A, %d %B %Y')
+        )
+        post_to_slack([no_content_msg])
+        return
+
     summaries = summarize_articles(articles)
     post_to_slack(summaries)
+
 
 
 if __name__ == "__main__":
