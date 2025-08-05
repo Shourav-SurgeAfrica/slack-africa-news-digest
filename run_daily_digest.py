@@ -57,3 +57,10 @@ def post_to_slack(digest):
     date = datetime.utcnow().strftime('%A, %d %B %Y')
     header = f"*📰 Your Africa Fintech Digest – {date}*\n\n"
     message = header + "\n\n".join
+    def main():
+    articles = fetch_articles()
+    summaries = summarize_articles(articles)
+    send_to_slack(summaries)
+
+if __name__ == "__main__":
+    main()
