@@ -1,5 +1,6 @@
-from flask import Flask, request
-import subprocess
+from flask import Flask
+import run_daily_digest  # make sure this file exists
+import traceback
 
 app = Flask(__name__)
 
@@ -10,7 +11,7 @@ def home():
 @app.route("/trigger", methods=["GET"])
 def trigger():
     try:
-        subprocess.run(["python", "run_daily_digest.py"])
-        return "News digest triggered successfully."
+        run_daily_digest.main()  # call the function directly
+        return "News digest triggered successfully!"
     except Exception as e:
-        return f"Error: {e}"
+        return f"Error: {e}\n\n{traceback.format_exc()}"
