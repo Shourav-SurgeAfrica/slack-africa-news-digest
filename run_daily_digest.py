@@ -142,8 +142,6 @@ def main():
     )
     post_to_slack([no_content_msg])
     return
-
-
     
     summaries = summarize_articles(articles)
     post_to_slack(summaries)
