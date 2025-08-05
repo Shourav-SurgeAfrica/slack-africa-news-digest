@@ -23,8 +23,13 @@ RSS_FEEDS = [
 
 # Keywords to filter relevant stories
 KEYWORDS = [
-    "fintech", "payments", "investment", "vc", "remittance",
-    "startups", "wallet", "funding", "cross-border", "digital money"
+   "fintech", "payments", "remittance", "wallet", "mobile money", "digital money","internatonal payments", "international supplier payments",
+    "money transfer", "cross-border", "p2p", "fx", "foreign exchange", "forex",
+    "funding", "seed", "series a", "series b", "venture capital", "vc", "angel investment", "raising capital",
+    "startups", "scaleups", "founder", "entrepreneur", "pitch", "accelerator", "incubator",
+    "blockchain", "crypto", "decentralized", "web3", "neobank", "banking as a service", "api",
+    "financial inclusion", "regulation", "compliance", "aml", "kyc", "unbanked", "underserved",
+    "mpesa", "flutterwave", "chipper", "opal", "yellow card", "paystack", "mtn", "airtel", "wave"
 ]
 
 def fetch_articles():
