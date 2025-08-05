@@ -1,13 +1,16 @@
 import os
-import openai
 import feedparser
 from slack_sdk import WebClient
 from datetime import datetime
+import openai
 
 # Load environment variables
 slack_token = os.environ.get("SLACK_BOT_TOKEN")
 channel = os.environ.get("SLACK_CHANNEL")
-openai.api_key = os.environ.get("OPENAI_API_KEY")
+openai_api_key = os.environ.get("OPENAI_API_KEY")
+
+# Initialize OpenAI client (latest SDK)
+client = openai.OpenAI(api_key=openai_api_key)
 
 # RSS feeds to monitor
 RSS_FEEDS = [
@@ -19,7 +22,10 @@ RSS_FEEDS = [
 ]
 
 # Keywords to filter relevant stories
-KEYWORDS = ["fintech", "payments", "investment", "vc", "remittance", "startups", "wallet", "funding", "cross-border", "digital money"]
+KEYWORDS = [
+    "fintech", "payments", "investment", "vc", "remittance",
+    "startups", "wallet", "funding", "cross-border", "digital money"
+]
 
 def fetch_articles():
     entries = []
@@ -36,32 +42,28 @@ def fetch_articles():
 
 def summarize_articles(articles):
     summaries = []
-    for article in articles[:5]:  # Limit to top 5 per day
+    for article in articles[:5]:  # Limit to top 5
         prompt = f"Summarize the following article in 2 bullet points:\n\nTitle: {article['title']}\n\nSummary: {article['summary']}"
         try:
-            response = openai.ChatCompletion.create(
+            response = client.chat.completions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You're a summarizer for African fintech news."},
                     {"role": "user", "content": prompt}
                 ]
             )
-            summary = response['choices'][0]['message']['content'].strip()
+            summary = response.choices[0].message.content.strip()
         except Exception as e:
-            summary = f"❌ Failed to summarize: {e}"
+            summary = f"❌ Failed to summarize:\n{e}"
         summaries.append(f"*{article['title']}*\n{summary}\n🔗 {article['link']}\n")
     return summaries
 
 def post_to_slack(digest):
     client = WebClient(token=slack_token)
     date = datetime.utcnow().strftime('%A, %d %B %Y')
-    header = f"*📰 Your Africa Fintech Digest – {date}*\n\n"
+    header = f":newspaper: *Your Africa Fintech Digest – {date}*\n"
     message = header + "\n\n".join(digest)
-
-    try:
-        client.chat_postMessage(channel=channel, text=message)
-    except Exception as e:
-        print(f"Failed to post to Slack: {e}")
+    client.chat_postMessage(channel=channel, text=message)
 
 def main():
     articles = fetch_articles()
@@ -70,4 +72,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
