@@ -136,13 +136,13 @@ def post_to_slack(digest):
 def main():
     articles = fetch_articles()
     
-    if not articles:
+    if not summaries:
     no_content_msg = ":newspaper: *Your Africa Fintech Digest – {}*\n\n_No relevant articles found in the past 5 days._".format(
         datetime.utcnow().strftime('%A, %d %B %Y')
     )
-    client = WebClient(token=slack_token)
-    client.chat_postMessage(channel=channel, text=no_content_msg)
+    post_to_slack([no_content_msg])
     return
+
 
     
     summaries = summarize_articles(articles)
