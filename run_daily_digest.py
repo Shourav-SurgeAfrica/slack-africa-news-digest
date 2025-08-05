@@ -65,7 +65,7 @@ def fetch_articles():
     for feed_url in RSS_FEEDS:
         feed = feedparser.parse(feed_url)
         for entry in feed.entries:
-            # Parse published date if it exists
+            # Parse published date
             try:
                 published_time = (
                     datetime.fromtimestamp(time.mktime(entry.published_parsed))
@@ -75,20 +75,24 @@ def fetch_articles():
             except Exception:
                 published_time = None
 
-            # Skip if no date or too old
+            # Skip if too old or missing date
             if not published_time or published_time < cutoff_date:
                 continue
 
+            # Safely get summary or description
+            content = entry.get("summary", entry.get("description", "")).lower()
+
             # Keyword filtering
-            if any(k in entry.title.lower() or k in entry.summary.lower() for k in KEYWORDS):
+            if any(k in entry.title.lower() or k in content for k in KEYWORDS):
                 entries.append({
                     "title": entry.title,
                     "link": entry.link,
-                    "summary": entry.summary,
+                    "summary": entry.get("summary", entry.get("description", "")),
                     "published": published_time.strftime('%Y-%m-%d')
                 })
 
     return entries
+
 
 
 def summarize_articles(articles):
