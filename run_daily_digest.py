@@ -46,7 +46,7 @@ RSS_FEEDS = [
 
 # Keywords to filter relevant stories
 KEYWORDS = [
-   "fintech", "payments", "remittance", "wallet", "mobile money", "digital money","internatonal payments", "international supplier payments",
+   "fintech", "payments", "remittance", "wallet", "mobile money", "digital money","international payments", "international supplier payments",
     "money transfer", "cross-border", "p2p", "fx", "foreign exchange", "forex",
     "funding", "seed", "series a", "series b", "venture capital", "vc", "angel investment", "raising capital",
     "startups", "scaleups", "founder", "entrepreneur", "pitch", "accelerator", "incubator",
