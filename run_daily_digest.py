@@ -55,22 +55,45 @@ KEYWORDS = [
     "mpesa", "flutterwave", "chipper", "opal", "yellow card", "paystack", "mtn", "airtel", "wave"
 ]
 
+from datetime import datetime, timedelta
+import time  # needed to parse published dates safely
+
 def fetch_articles():
     entries = []
+    cutoff_date = datetime.utcnow() - timedelta(days=5)
+
     for feed_url in RSS_FEEDS:
         feed = feedparser.parse(feed_url)
         for entry in feed.entries:
+            # Parse published date if it exists
+            try:
+                published_time = (
+                    datetime.fromtimestamp(time.mktime(entry.published_parsed))
+                    if hasattr(entry, "published_parsed")
+                    else None
+                )
+            except Exception:
+                published_time = None
+
+            # Skip if no date or too old
+            if not published_time or published_time < cutoff_date:
+                continue
+
+            # Keyword filtering
             if any(k in entry.title.lower() or k in entry.summary.lower() for k in KEYWORDS):
                 entries.append({
                     "title": entry.title,
                     "link": entry.link,
-                    "summary": entry.summary
+                    "summary": entry.summary,
+                    "published": published_time.strftime('%Y-%m-%d')
                 })
+
     return entries
+
 
 def summarize_articles(articles):
     summaries = []
-    for article in articles[:5]:  # Limit to top 5
+    for article in articles: 
         prompt = f"Summarize the following article in 2 bullet points:\n\nTitle: {article['title']}\n\nSummary: {article['summary']}"
         try:
             response = client.chat.completions.create(
