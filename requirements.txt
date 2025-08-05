@@ -2,3 +2,5 @@ openai
 feedparser
 slack_sdk
 python-dotenv
+flask
+gunicorn
