@@ -97,7 +97,7 @@ def summarize_articles(articles):
         prompt = f"Summarize the following article in 2 bullet points:\n\nTitle: {article['title']}\n\nSummary: {article['summary']}"
         try:
             response = client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "You're a summarizer for African fintech news."},
                     {"role": "user", "content": prompt}
