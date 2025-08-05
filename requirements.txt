@@ -1,0 +1,4 @@
+openai
+feedparser
+slack_sdk
+python-dotenv
