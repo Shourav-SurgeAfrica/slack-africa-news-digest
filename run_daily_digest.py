@@ -17,7 +17,6 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 KEYWORDS = [
     "africa", "fintech", "china", "international payments", "international supplier payments", "MENA", "AI",
     "B2B payments", "business to business", "remittance", "payments", "venture capital", "vc", "startup",
-    "flutterwave", "chipper", "mfs africa", "yellow card", "mtn", "airtel", "wave", "crypto", "visa", "mastercard", "google",
     "stablecoin", "blockchain", "cross-border", "central bank", "regulation", "tiktok", "meta", "facebook", "uber", "african tech"
 ]
 
@@ -32,8 +31,6 @@ NEWS_SOURCES = [
     "https://restofworld.org/feed",
     "https://techcabal.com/feed/",
     "https://disrupt-africa.com/feed/",
-    "https://www.balancingact-africa.com/news/feed",
-    "https://africa.techdigest.ng/feed/",
     "https://www.cnbcafrica.com/feed/",
     "https://rss.app/feeds/xRssLYcsP9MyFC2C.xml",  # Google News - Fintech Africa
     "https://rss.app/feeds/kqQx6ydQ7vrcztCg.xml",  # Google News - African Remittance
