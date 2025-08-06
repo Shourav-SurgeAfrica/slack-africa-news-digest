@@ -78,44 +78,52 @@ def log_memory(label):
 
 def summarize_articles(articles):
     log_memory("Start of summarize_articles")
-    summaries = []
-    for i, batch in enumerate(chunked(articles, BATCH_SIZE)):
-        log_memory(f"Before Batch {i+1}")
+    summarized_articles = []
+    for i, article in enumerate(articles):
+        log_memory(f"Before Article {i+1}")
         try:
-            content = "\n\n".join(f"{item['title']}\n{item['summary']}" for item in batch)
+            prompt = f"Summarize this article in 2 short bullet points.\n\nTitle: {article['title']}\n\nSummary: {article['summary']}"
             response = openai.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "You are a tech news assistant."},
-                    {"role": "user", "content": f"Summarize the following tech news articles in 5 bullet points.\n\n{content}"},
+                    {"role": "user", "content": prompt}
                 ]
             )
-            summary_text = response.choices[0].message.content
-            summaries.append(summary_text)
+            summary_text = response.choices[0].message.content.strip()
+            summarized_articles.append({
+                "title": article['title'],
+                "link": article['link'],
+                "summary": summary_text
+            })
         except Exception as e:
-            print(f"[ERROR] Batch {i+1} failed: {e}")
-            summaries.append(f"⚠️ Skipped one batch due to error.")
-        log_memory(f"After Batch {i+1}")
+            print(f"[ERROR] Article {i+1} failed: {e}")
+            summarized_articles.append({
+                "title": article['title'],
+                "link": article['link'],
+                "summary": "⚠️ Failed to summarize this article."
+            })
+        log_memory(f"After Article {i+1}")
+    return summarized_articles
 
-    if not summaries:
-        summaries.append("⚠️ Digest failed due to memory or processing issues.")
+def send_to_slack(summarized_articles):
+    text_lines = [
+        "*Africa Tech & VC Digest — Past 5 Days*",
+        f"_Scanned {len(summarized_articles)} relevant articles_\n"
+    ]
 
-    return summaries
-
-def send_to_slack(summaries, articles_scanned):
-    text = f"*Africa Tech & VC Digest — Past 5 Days*\n"
-    text += f"_Scanned {articles_scanned} articles, summarized {len(summaries)} batches._\n\n"
-
-    for i, summary in enumerate(summaries, start=1):
-        text += f"*Batch {i}:*\n{summary}\n\n"
+    for article in summarized_articles:
+        text_lines.append(f"*<{article['link']}|{article['title']}>*")
+        text_lines.append(f"{article['summary']}\n")
 
     try:
         client.chat_postMessage(
             channel=SLACK_CHANNEL,
-            text=text
+            text="\n".join(text_lines)
         )
     except SlackApiError as e:
         print(f"Slack API Error: {e.response['error']}")
+
 
 
 def main():
