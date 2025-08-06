@@ -42,32 +42,46 @@ BATCH_SIZE = 3  # Reduced for memory efficiency
 def fetch_articles():
     all_entries = []
     now = datetime.utcnow()
-    cutoff = now - timedelta(days=5)
+    cutoff = now - timedelta(days=15)
 
     for url in NEWS_SOURCES:
+        print(f"\n[INFO] Fetching: {url}")
         feed = feedparser.parse(url)
+
+        if feed.bozo:
+            print(f"[WARNING] Failed to parse feed: {url} — Reason: {feed.bozo_exception}")
+            continue
+
+        print(f"[INFO] Entries found in feed: {len(feed.entries)}")
+
         for entry in feed.entries:
             try:
                 published = entry.get("published_parsed") or entry.get("updated_parsed")
                 if not published:
                     continue
+
                 published_dt = datetime.fromtimestamp(time.mktime(published))
                 if published_dt < cutoff:
                     continue
 
                 summary = entry.get("summary") or entry.get("description") or ""
-                if any(k in entry.title.lower() or k in summary.lower() for k in KEYWORDS):
+                title = entry.get("title", "")
+
+                if any(k in title.lower() or k in summary.lower() for k in KEYWORDS):
                     all_entries.append({
-                        "title": entry.title,
+                        "title": title,
                         "link": entry.link,
                         "published": published_dt.strftime("%Y-%m-%d"),
                         "summary": summary,
+                        "source": url
                     })
-            except Exception as e:
-                print(f"Error parsing entry: {e}")
 
-    print(f"\U0001F50D Found {len(all_entries)} relevant articles.")
+            except Exception as e:
+                print(f"[ERROR] Parsing entry from {url} — {e}")
+
+    print(f"\n🔍 Total relevant articles found: {len(all_entries)}")
     return all_entries
+
 
 
 def log_memory(label):
