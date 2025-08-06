@@ -84,31 +84,71 @@ def fetch_articles():
     print(f"🔍 Found {len(entries)} relevant articles.")
     return entries[:30]  # Limit to 30 articles for now to avoid overload
 
+import os
+import psutil
+from openai import OpenAIError
+
 def summarize_articles(articles):
     summaries = []
+    batch_size = 5
+    batch_failures = 0
 
-    for batch in chunked(articles, 5):  # batch of 5 to avoid memory spikes
-        for article in batch:
-            prompt = f"Summarize the following article in 2 bullet points:\n\nTitle: {article['title']}\n\nSummary: {article['summary']}"
+    def log_memory_usage(batch_num):
+        process = psutil.Process(os.getpid())
+        mem = process.memory_info().rss / 1024 / 1024  # in MB
+        print(f"📊 Batch {batch_num}: Current memory usage: {mem:.2f} MB")
 
-            try:
-                # Force use of GPT-3.5 for now to conserve resources
-                response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "system", "content": "You're a summarizer for African fintech news."},
-                        {"role": "user", "content": prompt}
-                    ]
-                )
-                summary = response.choices[0].message.content.strip()
+    for i in range(0, len(articles), batch_size):
+        batch = articles[i:i+batch_size]
+        batch_num = i // batch_size + 1
 
-            except Exception as e:
-                print(f"❌ Summarization failed for: {article['title']}\nError: {e}")
-                summary = "❌ Failed to summarize this article."
+        try:
+            log_memory_usage(batch_num)
 
-            summaries.append(f"*{article['title']}*\n{summary}\n🔗 {article['link']}\n")
+            user_content = "\n\n".join(
+                [f"Title: {article['title']}\nContent: {article['summary']}" for article in batch]
+            )
+
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "You are a summarizer bot for a Slack digest. "
+                            "Summarize each article below in 2–3 bullet points. "
+                            "Respond in Markdown with emojis where appropriate."
+                        )
+                    },
+                    {
+                        "role": "user",
+                        "content": user_content
+                    }
+                ],
+                temperature=0.7,
+                max_tokens=800
+            )
+
+            summaries.append(response.choices[0].message.content)
+
+        except OpenAIError as e:
+            print(f"❌ OpenAI error on batch {batch_num}: {e}")
+            summaries.append(f"⚠️ Failed to summarize batch {batch_num} due to OpenAI error.")
+            batch_failures += 1
+
+        except Exception as e:
+            print(f"❌ General error on batch {batch_num}: {e}")
+            summaries.append(f"⚠️ Unexpected error in batch {batch_num}.")
+            batch_failures += 1
+
+    # Fallback: All batches failed
+    if batch_failures == len(articles) // batch_size + (1 if len(articles) % batch_size != 0 else 0):
+        return [
+            "⚠️ All summarization batches failed. Please check API key, memory limits, or article formatting."
+        ]
 
     return summaries
+
 
 def post_to_slack(digest):
     slack_client = WebClient(token=slack_token)
