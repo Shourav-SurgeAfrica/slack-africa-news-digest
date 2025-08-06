@@ -24,17 +24,11 @@ NEWS_SOURCES = [
     "https://techcrunch.com/tag/africa/feed/",
     "https://techcrunch.com/feed/",
     "https://news.google.com/rss/search?q=site:bloomberg.com+africa",
-    "https://news.google.com/rss/search?q=site:bloomberg.com+startup+OR+fintech+OR+venture",
     "https://feeds.reuters.com/Reuters/africaNews",
-    "https://feeds.reuters.com/reuters/technologyNews",
-    "https://feeds.reuters.com/reuters/businessNews",
     "https://restofworld.org/feed",
     "https://techcabal.com/feed/",
     "https://disrupt-africa.com/feed/",
     "https://www.cnbcafrica.com/feed/",
-    "https://rss.app/feeds/xRssLYcsP9MyFC2C.xml",  # Google News - Fintech Africa
-    "https://rss.app/feeds/kqQx6ydQ7vrcztCg.xml",  # Google News - African Remittance
-    "https://rss.app/feeds/4R5ErfnYTbFy4sHi.xml",  # Google News - VC Africa
 ]
 
 openai.api_key = OPENAI_API_KEY
