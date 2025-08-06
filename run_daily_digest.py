@@ -118,7 +118,7 @@ def summarize_articles(articles):
 
 def send_to_slack(summarized_articles):
     text_lines = [
-        "*Africa Tech & VC Digest — Past 5 Days*",
+        "*Africa Tech & VC Digest — Past 15 Days*",
         f"_Scanned {len(summarized_articles)} relevant articles_\n"
     ]
 
@@ -139,7 +139,7 @@ def send_to_slack(summarized_articles):
 def main():
     articles = fetch_articles()
     if not articles:
-        send_to_slack(["No relevant articles found in the past 5 days."])
+        send_to_slack(["No relevant articles found in the past 15 days."])
         return
     summaries = summarize_articles(articles)
     send_to_slack(summaries)
