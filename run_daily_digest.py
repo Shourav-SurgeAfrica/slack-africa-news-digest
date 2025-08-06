@@ -15,13 +15,20 @@ SLACK_TOKEN = os.getenv("SLACK_BOT_TOKEN")
 SLACK_CHANNEL = os.getenv("SLACK_CHANNEL")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 KEYWORDS = [
-    "africa", "fintech", "remittance", "payments", "venture capital", "vc", "startup",
-    "flutterwave", "chipper", "mfs africa", "yellow card", "mtn", "airtel", "crypto",
-    "stablecoin", "blockchain", "cross-border", "central bank", "regulation", "african tech"
+    "africa", "fintech", "china", "international payments", "international supplier payments", "MENA", "AI",
+    "B2B payments", "business to business", "remittance", "payments", "venture capital", "vc", "startup",
+    "flutterwave", "chipper", "mfs africa", "yellow card", "mtn", "airtel", "wave", "crypto", "visa", "mastercard", "google",
+    "stablecoin", "blockchain", "cross-border", "central bank", "regulation", "tiktok", "meta", "facebook", "uber", "african tech"
 ]
 
 NEWS_SOURCES = [
     "https://techcrunch.com/tag/africa/feed/",
+    "https://techcrunch.com/feed/",
+    "https://news.google.com/rss/search?q=site:bloomberg.com+africa",
+    "https://news.google.com/rss/search?q=site:bloomberg.com+startup+OR+fintech+OR+venture",
+    "https://feeds.reuters.com/Reuters/africaNews",
+    "https://feeds.reuters.com/reuters/technologyNews",
+    "https://feeds.reuters.com/reuters/businessNews",
     "https://restofworld.org/feed",
     "https://techcabal.com/feed/",
     "https://disrupt-africa.com/feed/",
