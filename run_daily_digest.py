@@ -22,6 +22,7 @@ KEYWORDS = [
 
 NEWS_SOURCES = [
     "https://techcrunch.com/tag/africa/feed/",
+    "https://restofworld.org/feed",
     "https://techcabal.com/feed/",
     "https://disrupt-africa.com/feed/",
     "https://www.balancingact-africa.com/news/feed",
