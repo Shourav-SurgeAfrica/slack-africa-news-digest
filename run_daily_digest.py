@@ -11,7 +11,7 @@ from more_itertools import chunked
 
 load_dotenv()
 
-SLACK_TOKEN = os.getenv("SLACK_TOKEN")
+SLACK_TOKEN = os.getenv("SLACK_BOT_TOKEN")
 SLACK_CHANNEL = os.getenv("SLACK_CHANNEL")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 KEYWORDS = [
