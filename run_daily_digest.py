@@ -102,9 +102,13 @@ def summarize_articles(articles):
 
     return summaries
 
+def send_to_slack(summaries, articles_scanned):
+    text = f"*Africa Tech & VC Digest — Past 5 Days*\n"
+    text += f"_Scanned {articles_scanned} articles, summarized {len(summaries)} batches._\n\n"
 
-def send_to_slack(summaries):
-    text = "*Africa Tech & VC Digest — Past 5 Days*\n\n" + "\n\n".join(summaries)
+    for i, summary in enumerate(summaries, start=1):
+        text += f"*Batch {i}:*\n{summary}\n\n"
+
     try:
         client.chat_postMessage(
             channel=SLACK_CHANNEL,
@@ -120,7 +124,7 @@ def main():
         send_to_slack(["No relevant articles found in the past 5 days."])
         return
     summaries = summarize_articles(articles)
-    send_to_slack(summaries)
+    send_to_slack(summaries, len(articles))
 
 
 if __name__ == "__main__":
