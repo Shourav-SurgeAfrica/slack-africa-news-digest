@@ -15,9 +15,9 @@ SLACK_TOKEN = os.getenv("SLACK_BOT_TOKEN")
 SLACK_CHANNEL = os.getenv("SLACK_CHANNEL")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 KEYWORDS = [
-    "africa", "fintech", "china", "international payments", "international supplier payments", "MENA", "AI",
-    "B2B payments", "business to business", "remittance", "payments", "venture capital", "vc", "startup",
-    "stablecoin", "blockchain", "cross-border", "central bank", "regulation", "tiktok", "meta", "facebook", "uber", "african tech"
+    "africa", "fintech", "china", "international payments", "MENA", "AI",
+    "B2B payments", "payments", "venture capital", "vc", "startup",
+    "stablecoin", "blockchain", "cross-border",
 ]
 
 NEWS_SOURCES = [
