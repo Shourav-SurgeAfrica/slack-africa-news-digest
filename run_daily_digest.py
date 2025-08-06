@@ -132,7 +132,7 @@ def main():
         send_to_slack(["No relevant articles found in the past 5 days."])
         return
     summaries = summarize_articles(articles)
-    send_to_slack(summaries, len(articles))
+    send_to_slack(summaries)
 
 
 if __name__ == "__main__":
