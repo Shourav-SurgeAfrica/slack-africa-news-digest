@@ -21,10 +21,7 @@ KEYWORDS = [
 ]
 
 NEWS_SOURCES = [
-    "https://techcrunch.com/tag/africa/feed/",
     "https://techcrunch.com/feed/",
-    "https://news.google.com/rss/search?q=site:bloomberg.com+africa",
-    "https://feeds.reuters.com/Reuters/africaNews",
     "https://restofworld.org/feed",
     "https://techcabal.com/feed/",
     "https://disrupt-africa.com/feed/",
