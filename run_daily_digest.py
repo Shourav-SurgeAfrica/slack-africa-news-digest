@@ -1,173 +1,126 @@
 import os
+import gc
+import psutil
 import feedparser
-import time
+from dotenv import load_dotenv
+from openai import OpenAI
+from more_itertools import batched
 from slack_sdk import WebClient
-from datetime import datetime, timedelta
-import openai
-from more_itertools import chunked
+from slack_sdk.errors import SlackApiError
 
-# Load environment variables
-slack_token = os.environ.get("SLACK_BOT_TOKEN")
-channel = os.environ.get("SLACK_CHANNEL")
-openai_api_key = os.environ.get("OPENAI_API_KEY")
+load_dotenv()
 
-# Initialize OpenAI client (latest SDK)
-client = openai.OpenAI(api_key=openai_api_key)
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+slack_client = WebClient(token=os.getenv("SLACK_BOT_TOKEN"))
+SLACK_CHANNEL_ID = os.getenv("SLACK_CHANNEL_ID")
+KEYWORDS = ["fintech", "payments", "remittance", "startup", "africa"]
+BATCH_SIZE = 3
 
-# RSS feeds
-RSS_FEEDS = [
-    # 🌍 Pan-African & Regional Tech/Fintech News
+FEED_URLS = [
+    # Pan-African & Regional
     "https://techcabal.com/feed/",
     "https://disrupt-africa.com/feed/",
     "https://weetracker.com/feed/",
-    "https://www.technext.ng/feed/",
-    "https://www.benjamindada.com/rss/",
+    "https://technext24.com/feed/",
     "https://techmoran.com/feed/",
     "https://techpoint.africa/feed/",
-    # 💸 Finance, VC & Remittance-Focused
-    "https://www.theafricareport.com/feed/",
-    "https://africa.businessinsider.com/rss",
+
+    # Finance, VC & Remittance
     "https://www.pymnts.com/feed/",
-    "https://www.finextra.com/rss/news.aspx",
+    "https://www.finextra.com/rss.xml",
     "https://techinafrica.com/feed/",
-    "https://qz.com/africa/feed",
-    # 🧠 Analytical / Long-form / Reports
-    "https://fincra.com/blog/feed/",
-    "https://mfsafrica.com/blog/rss.xml",
-    "https://blog.chipper.cash/feed/",
-    # 📣 Global Media
+
+    # Global w/ filters
     "https://techcrunch.com/feed/",
-    "https://www.theverge.com/rss/index.xml",
-    "https://www.wired.com/feed/rss",
     "https://finance.yahoo.com/news/rssindex",
-    "https://www.coindesk.com/arc/outboundfeeds/rss/"
+    "https://www.coindesk.com/arc/outboundfeeds/rss/",
 ]
 
-KEYWORDS = [
-    "fintech", "payments", "remittance", "wallet", "mobile money", "digital money", "international payments",
-    "international supplier payments", "money transfer", "cross-border", "p2p", "fx", "foreign exchange", "forex",
-    "funding", "seed", "series a", "series b", "venture capital", "vc", "angel investment", "raising capital",
-    "startups", "scaleups", "founder", "entrepreneur", "pitch", "accelerator", "incubator",
-    "blockchain", "crypto", "decentralized", "web3", "neobank", "banking as a service", "api",
-    "financial inclusion", "regulation", "compliance", "aml", "kyc", "unbanked", "underserved",
-    "mpesa", "flutterwave", "chipper", "opal", "yellow card", "paystack", "mtn", "airtel", "wave"
-]
+def log_memory(context=""):
+    process = psutil.Process()
+    mem = process.memory_info().rss / (1024 * 1024)
+    print(f"[MEMORY] {context}: {mem:.2f} MB")
 
 def fetch_articles():
-    entries = []
-    cutoff_date = datetime.utcnow() - timedelta(days=5)
-
-    for feed_url in RSS_FEEDS:
-        feed = feedparser.parse(feed_url)
+    all_articles = []
+    for url in FEED_URLS:
+        feed = feedparser.parse(url)
         for entry in feed.entries:
             try:
-                published_time = (
-                    datetime.fromtimestamp(time.mktime(entry.published_parsed))
-                    if hasattr(entry, "published_parsed")
-                    else None
-                )
-            except Exception:
-                published_time = None
-
-            if not published_time or published_time < cutoff_date:
-                continue
-
-            content = entry.get("summary", entry.get("description", "")).lower()
-            if any(k in entry.title.lower() or k in content for k in KEYWORDS):
-                entries.append({
-                    "title": entry.title,
-                    "link": entry.link,
-                    "summary": entry.get("summary", entry.get("description", "")),
-                    "published": published_time.strftime('%Y-%m-%d')
-                })
-
-    print(f"🔍 Found {len(entries)} relevant articles.")
-    return entries[:30]  # Limit to 30 articles for now to avoid overload
-
-import os
-import psutil
-from openai import OpenAIError
+                if any(k in entry.title.lower() or k in entry.summary.lower() for k in KEYWORDS):
+                    all_articles.append({
+                        "title": entry.title,
+                        "link": entry.link,
+                        "summary": entry.summary if hasattr(entry, 'summary') else ""
+                    })
+            except Exception as e:
+                print(f"Error parsing entry: {e}")
+    print(f"\U0001F50D Found {len(all_articles)} relevant articles.")
+    return all_articles[:15]  # temporary limit for testing
 
 def summarize_articles(articles):
     summaries = []
-    batch_size = 5
-    batch_failures = 0
+    success = False
 
-    def log_memory_usage(batch_num):
-        process = psutil.Process(os.getpid())
-        mem = process.memory_info().rss / 1024 / 1024  # in MB
-        print(f"📊 Batch {batch_num}: Current memory usage: {mem:.2f} MB")
+    log_memory("Start of summarize_articles")
 
-    for i in range(0, len(articles), batch_size):
-        batch = articles[i:i+batch_size]
-        batch_num = i // batch_size + 1
+    for idx, batch in enumerate(batched(articles, BATCH_SIZE), 1):
+        batch_summaries = []
 
-        try:
-            log_memory_usage(batch_num)
+        log_memory(f"Before Batch {idx}")
 
-            user_content = "\n\n".join(
-                [f"Title: {article['title']}\nContent: {article['summary']}" for article in batch]
-            )
+        for article in batch:
+            prompt = f"Summarize the following article in 2 bullet points:\n\nTitle: {article['title']}\n\nSummary: {article['summary']}"
+            try:
+                response = client.chat.completions.create(
+                    model="gpt-4",
+                    messages=[
+                        {"role": "system", "content": "You're a summarizer for African fintech news."},
+                        {"role": "user", "content": prompt}
+                    ]
+                )
+                summary = response.choices[0].message.content.strip()
+                success = True
+            except Exception as e:
+                print(f"[ERROR] GPT-4 failed on Batch {idx}: {e}\nTrying GPT-3.5 fallback...")
+                try:
+                    response = client.chat.completions.create(
+                        model="gpt-3.5-turbo",
+                        messages=[
+                            {"role": "system", "content": "You're a summarizer for African fintech news."},
+                            {"role": "user", "content": prompt}
+                        ]
+                    )
+                    summary = response.choices[0].message.content.strip()
+                    success = True
+                except Exception as fallback_error:
+                    print(f"[FATAL] GPT-3.5 fallback also failed: {fallback_error}")
+                    summary = f"❌ Failed to summarize:\n{article['title']}"
 
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": (
-                            "You are a summarizer bot for a Slack digest. "
-                            "Summarize each article below in 2–3 bullet points. "
-                            "Respond in Markdown with emojis where appropriate."
-                        )
-                    },
-                    {
-                        "role": "user",
-                        "content": user_content
-                    }
-                ],
-                temperature=0.7,
-                max_tokens=800
-            )
+            batch_summaries.append(f"*{article['title']}*\n{summary}\n🔗 {article['link']}\n")
 
-            summaries.append(response.choices[0].message.content)
+        summaries.extend(batch_summaries)
+        del batch_summaries
+        gc.collect()
+        log_memory(f"After Batch {idx}")
 
-        except OpenAIError as e:
-            print(f"❌ OpenAI error on batch {batch_num}: {e}")
-            summaries.append(f"⚠️ Failed to summarize batch {batch_num} due to OpenAI error.")
-            batch_failures += 1
+    if not success:
+        summaries.append("❌ All AI summarization attempts failed. Please check your OpenAI quota or API status.")
 
-        except Exception as e:
-            print(f"❌ General error on batch {batch_num}: {e}")
-            summaries.append(f"⚠️ Unexpected error in batch {batch_num}.")
-            batch_failures += 1
-
-    # Fallback: All batches failed
-    if batch_failures == len(articles) // batch_size + (1 if len(articles) % batch_size != 0 else 0):
-        return [
-            "⚠️ All summarization batches failed. Please check API key, memory limits, or article formatting."
-        ]
-
+    log_memory("End of summarize_articles")
     return summaries
 
-
-def post_to_slack(digest):
-    slack_client = WebClient(token=slack_token)
-    date = datetime.utcnow().strftime('%A, %d %B %Y')
-    header = f":newspaper: *Your Africa Fintech Digest – {date}*\n"
-    message = header + "\n\n".join(digest)
-
-    slack_client.chat_postMessage(channel=channel, text=message)
+def post_to_slack(message):
+    try:
+        slack_client.chat_postMessage(channel=SLACK_CHANNEL_ID, text=message)
+    except SlackApiError as e:
+        print(f"[SLACK ERROR] {e.response['error']}")
 
 def main():
     articles = fetch_articles()
-
-    if not articles:
-        no_content_msg = f":newspaper: *Your Africa Fintech Digest – {datetime.utcnow().strftime('%A, %d %B %Y')}*\n\n_No relevant articles found in the past 5 days._"
-        post_to_slack([no_content_msg])
-        return
-
     summaries = summarize_articles(articles)
-    post_to_slack(summaries)
+    message = "\n\n".join(summaries)
+    post_to_slack(message)
 
 if __name__ == "__main__":
     main()
