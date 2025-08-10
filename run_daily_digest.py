@@ -39,7 +39,7 @@ BATCH_SIZE = 3  # Reduced for memory efficiency
 def fetch_articles():
     all_entries = []
     now = datetime.utcnow()
-    cutoff = now - timedelta(days=15)
+    cutoff = now - timedelta(days=3)
 
     for url in NEWS_SOURCES:
         print(f"\n[INFO] Fetching: {url}")
@@ -119,7 +119,7 @@ def summarize_articles(articles):
 
 def send_to_slack(summarized_articles):
     text_lines = [
-        "*Africa Tech & VC Digest — Past 15 Days*",
+        "*Africa Tech & VC Digest — Past 3 Days*",
         f"_Scanned {len(summarized_articles)} relevant articles_\n"
     ]
 
@@ -140,7 +140,7 @@ def send_to_slack(summarized_articles):
 def main():
     articles = fetch_articles()
     if not articles:
-        send_to_slack(["No relevant articles found in the past 15 days."])
+        send_to_slack(["No relevant articles found in the past 3 days."])
         return
     summaries = summarize_articles(articles)
     send_to_slack(summaries)
